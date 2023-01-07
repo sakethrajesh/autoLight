@@ -3,7 +3,7 @@ from pyicloud import PyiCloudService
 email = input('Email: ')
 password = input("Password: ")
 
-api = PyiCloudService('sakethraj122@gmail.com', 'Sakvith27')
+api = PyiCloudService('sakethraj122@gmail.com', password)
 
 print(api.devices[3].location())
 
