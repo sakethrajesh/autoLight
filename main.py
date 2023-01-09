@@ -1,13 +1,12 @@
 from pyicloud import PyiCloudService
+import getpass
 
 email = input('Email: ')
-password = input("Password: ")
+password = getpass.getpass("Password: ")
 
 api = PyiCloudService('sakethraj122@gmail.com', password)
 
-print(api.devices[3].location())
-
-# off = False
+print(api.data)
 
 off = 0;
 

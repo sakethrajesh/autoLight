@@ -1,0 +1,5 @@
+right side of outlet
+    coordinates: (37.68337067412762 -120.94269948602218)
+
+left side of outlet
+    coordinates: (37.68334765355561 -120.94266433608757)
