@@ -5,7 +5,29 @@ from math import radians, cos, sin, asin, sqrt
 import datetime
 import requests
 import json
-import enquiries
+import asyncio
+import socketio
+
+sio = socketio.AsyncClient()
+
+status = 0
+
+@sio.on('statusChange')
+async def statusChange(data):
+    global status
+    status = data['status']
+    print('the lamp has been turned ' + str(status))
+
+@sio.event
+async def connect():
+    print('****************connected********************')
+
+
+@sio.event
+async def disconnect():
+    print('****************disconnected********************')
+
+
 
 def distance(lat1, lat2, lon1, lon2):
      
@@ -29,88 +51,101 @@ def distance(lat1, lat2, lon1, lon2):
     # calculate the result
     return r
 
-email = input('Email: ')
-password = getpass.getpass("Password: ")
+async def main():
+    await sio.connect("http://127.0.0.1:8000")
+    await sio.start_background_task(sstuff)
 
-api = PyiCloudService('sakethraj122@gmail.com', icloud_pass)
+    # await sio.wait()
+    # await sio.call('ping', {})
 
-print(api.data)
+async def sstuff():
+    # print('hello');
 
-now = datetime.datetime.now()
-print('time now ' + str(now))
-six_pm = now.replace(hour=18, minute=0, second=0, microsecond=0)
-six_am = now.replace(hour=6, minute=0, second=0, microsecond=0)
-print(now > six_pm)
-print(now < six_am)
+    while True:
+        await sio.wait()
+        print('hello');
 
 
-url = 'https://developer-api.govee.com/v1'
-headers = {"content-type": "application/json", 'Govee-API-Key': govee_key }
-payload = {
-    'device':'e1:66:34:20:03:6d:62:62',
-    'model':'H5081',
-    'cmd': {
-        'name': 'turn',
-        'value': 'off'
+async def stuff():
+    # email = input('Email: ')
+    # password = getpass.getpass("Password: ")
+
+    api = PyiCloudService('sakethraj122@gmail.com', icloud_pass)
+
+    global status
+
+    print(api.data)
+
+    now = datetime.datetime.now()
+    # print('time now ' + str(now))
+    five_pm = now.replace(hour=17, minute=0, second=0, microsecond=0)
+    five_am = now.replace(hour=5, minute=0, second=0, microsecond=0)
+    # print(now > five_pm)
+    # print(now < five_am)
+
+
+    url = 'https://developer-api.govee.com/v1'
+    headers = {"content-type": "application/json", 'Govee-API-Key': govee_key }
+    payload = {
+        'device':'e1:66:34:20:03:6d:62:62',
+        'model':'H5081',
+        'cmd': {
+            'name': 'turn',
+            'value': 'off'
+        }
     }
-}
-requests.put(url + '/devices/control', data=json.dumps(payload), headers=headers)
-status = False
-off = 0;
+    requests.put(url + '/devices/control', data=json.dumps(payload), headers=headers)
 
-while True:
-    latitude = api.devices[3].location()['latitude']
-    longitude = api.devices[3].location()['longitude']
-    print('coordinates: (' + str(latitude) + '', '' + str(longitude) + ')')
+    while True:
+        latitude = api.devices[3].location()['latitude']
+        longitude = api.devices[3].location()['longitude']
+        # print('coordinates: (' + str(latitude) + '', '' + str(longitude) + ')')
+        # print(str(status))
+        # distance = distance(lat1=37.24243167545431, lon1=-80.42904638540682, lat2=latitude, lon2=longitude)
+        # print(distance(37.24243167545431, latitude, -80.42904638540682, longitude))
+        # print('**************************************************************')
 
-    # distance = distance(lat1=37.24243167545431, lon1=-80.42904638540682, lat2=latitude, lon2=longitude)
-    print(distance(37.24243167545431, latitude, -80.42904638540682, longitude))
-    print('**************************************************************')
 
-    off += 1
+        if (now >= five_pm or now <= five_am) and distance(37.24243167545431, latitude, -80.42904638540682, longitude) <= 100:
+            # print('in range and in time')
 
-    # 
-
-    if (now >= six_pm or now <= six_am) and distance(37.24243167545431, latitude, -80.42904638540682, longitude) <= 100:
-        print('in range')
-
-        if not status:
-            payload = {
-                'device':'e1:66:34:20:03:6d:62:62',
-                'model':'H5081',
-                'cmd': {
-                    'name': 'turn',
-                    'value': 'on'
+            if status == 0:
+                payload = {
+                    'device':'e1:66:34:20:03:6d:62:62',
+                    'model':'H5081',
+                    'cmd': {
+                        'name': 'turn',
+                        'value': 'on'
+                    }
                 }
-            }
 
-            print(requests.put(url + '/devices/control', data=json.dumps(payload), headers=headers).content)
-            status = True
+                # print(requests.put(url + '/devices/control', data=json.dumps(payload), headers=headers).content)
+                status = 1
+            # else:
+                # print('already on') 
+
+
         else:
-            print('already on') 
+            # print('not in range or not on time')
 
-
-    else:
-        print('not in range')
-
-        if status:
-            payload = {
-                'device':'e1:66:34:20:03:6d:62:62',
-                'model':'H5081',
-                'cmd': {
-                    'name': 'turn',
-                    'value': 'off'
+            if status == 1:
+                payload = {
+                    'device':'e1:66:34:20:03:6d:62:62',
+                    'model':'H5081',
+                    'cmd': {
+                        'name': 'turn',
+                        'value': 'off'
+                    }
                 }
-            }
 
-            print(requests.put(url + '/devices/control', data=json.dumps(payload), headers=headers).content)
-            status = False
-        else:
-            print('already off') 
-
-
-    # if input('end service (yes/no): ') == 'yes':
-    #     off = True
+                # print(requests.put(url + '/devices/control', data=json.dumps(payload), headers=headers).content)
+                status = 0
+            # else:
+                # print('already off') 
 
 
+
+
+
+asyncio.run(main())
 

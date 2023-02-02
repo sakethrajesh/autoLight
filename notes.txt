@@ -1,5 +1,15 @@
+on/off
+on = 1
+off = 0
+
 right side of outlet
     coordinates: (37.68337067412762 -120.94269948602218)
 
 left side of outlet
     coordinates: (37.68334765355561 -120.94266433608757)
+
+Starting webserver (no async)
+    gunicorn --reload --threads 50 soc:app
+
+Starting webserver (async)
+    uvicorn soc:app
