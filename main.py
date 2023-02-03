@@ -7,6 +7,7 @@ import requests
 import json
 import asyncio
 import socketio
+import time
 
 sio = socketio.AsyncClient()
 
@@ -53,6 +54,7 @@ def distance(lat1, lat2, lon1, lon2):
 
 async def main():
     await sio.connect("http://127.0.0.1:8000")
+    # await sio.wait()
     await sio.start_background_task(sstuff)
 
     # await sio.wait()
@@ -62,7 +64,7 @@ async def sstuff():
     # print('hello');
 
     while True:
-        await sio.wait()
+        time.sleep(3)
         print('hello');
 
 
